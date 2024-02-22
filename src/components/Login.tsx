@@ -13,15 +13,20 @@ function Login() {
             password: "",
         },
         validationSchema: userSchema,
-        onSubmit: async (values: User) => {
-            const response = await axios.get(`${SERVER_URL}/users/login`, {
-                params: {
-                    userInfo: values,
-                },
-                withCredentials: true,
-            });
-            if (response.status === 200) {
-                navigateTo("/auth/chat");
+        onSubmit: async (values: User, {setStatus}) => {
+            try {
+                const response = await axios.get(`${SERVER_URL}/users/login`, {
+                    params: {
+                        userInfo: values,
+                    },
+                    withCredentials: true,
+                });
+                if (response.status === 200) {
+                    navigateTo("/auth/chat");
+                }
+            } catch (err) {
+                setStatus('Username or Password invalid')
+                console.error(err);
             }
         },
     });

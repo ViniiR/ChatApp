@@ -1,19 +1,16 @@
-import { SERVER_URL } from "@/environment";
+import { SERVER_URL} from "@/environment";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import Loading from "./Loading";
 import { createContext } from "react";
-
-type Contact = {
-    messages: string[];
-    name: string;
-};
+import { io } from "socket.io-client";
 
 const UserInfoObject = {
     userName: "",
     contactsList: [{ messages: [""], name: "" }],
 };
+
 
 function ProtectedRoutes() {
     const [isValidToken, setIsValidToken] = useState(false);
@@ -36,8 +33,6 @@ function ProtectedRoutes() {
                     UserInfoObject.contactsList[i] = {
                         name: element,
                         messages: ['']
-                        //TODO: send the messages from server
-                        //TODO: its important 
                     };
                 });
                 setIsValidToken(true);
@@ -58,3 +53,5 @@ function ProtectedRoutes() {
 export default ProtectedRoutes;
 
 export const UserInfoContext = createContext(UserInfoObject);
+
+export const SocketContext = createContext(io('http://localhost:3000/chat', {autoConnect: false}))

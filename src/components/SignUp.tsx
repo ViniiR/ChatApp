@@ -11,9 +11,17 @@ function SignUp() {
             password: "",
         },
         validationSchema: userSchema,
-        onSubmit: async (values: User) => {
-            //FIXME: this is onlogin
-            const response = await axios.post(`${SERVER_URL}/users/create`, values);console.log(response);
+        onSubmit: async (values: User, {setStatus}) => {
+            try {
+                await axios.post(
+                    `${SERVER_URL}/users/create`,
+                    values
+                );
+                setStatus('User created successfully, Go to Login')
+            } catch (err) {
+                setStatus('User already exists, Try a different Username')
+                console.error(err);
+            }
         },
     });
     return (

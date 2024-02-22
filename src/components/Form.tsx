@@ -31,7 +31,10 @@ function Form({ label, oppositeLink, formik, oppositeLinkText }: FormProps) {
                     name="userName"
                     id="userName"
                     value={formik.values.userName}
-                    onChange={formik.handleChange}
+                    onChange={(e) => {
+                        formik.handleChange(e);
+                        formik.setStatus("");
+                    }}
                 />
                 <Error
                     text={formik.errors.userName!}
@@ -46,10 +49,13 @@ function Form({ label, oppositeLink, formik, oppositeLinkText }: FormProps) {
                     name="password"
                     id="password"
                     value={formik.values.password}
-                    onChange={formik.handleChange}
+                    onChange={(e) => {
+                        formik.handleChange(e);
+                        formik.setStatus("");
+                    }}
                 />
                 <Error
-                    text={formik.errors.password!}
+                    text={formik.errors.password || formik.status}
                     className="text-red-500 w-full h-6 text-sm"
                 ></Error>
                 <input

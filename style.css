@@ -1,0 +1,15 @@
+.custom-scroll-bar::-webkit-scrollbar {
+    width: 10px;
+}
+.custom-scroll-bar::-webkit-scrollbar-track {
+    background-color: rgb(110, 110, 110);
+}
+.custom-scroll-bar::-webkit-scrollbar-thumb {
+    background-color: #999999;
+}
+.custom-scroll-bar {
+    scrollbar-gutter: stable;
+}
+.show-caption-hover:hover > .caption-hover {
+    display: block;
+}

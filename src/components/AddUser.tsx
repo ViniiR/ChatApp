@@ -20,28 +20,31 @@ function AddUser({ menuRef, closeMenu }: AddUserProps) {
         },
         validationSchema: friendSchema,
         async onSubmit(values: { userName: string }, { setStatus }) {
-            axios
-                .patch(`${SERVER_URL}/users/add-contact`, values, {
-                    withCredentials: true,
-                })
-                .then((data) => {
-                    setStatus(data.data);
-                    (closeMenu as CallableFunction)();
-                })
-                .catch((err) => {
-                    setStatus(err.response.data);
-                });
+            try {
+                const res = await axios.patch(
+                    `${SERVER_URL}/users/add-contact`,
+                    values,
+                    {
+                        withCredentials: true,
+                    }
+                );
+                window.location.reload()
+                setStatus(res.data);
+                (closeMenu as CallableFunction)();
+            } catch (err) {
+                const message = (err as {response: {data: string}}).response.data
+                setStatus(message);
+            }
         },
     });
 
     return (
         <div
             ref={menuRef}
-            className="fixed w-full h-full bg-black bg-opacity-60 rounded hidden items-center justify-center m-auto shadow-sm"
+            className="fixed w-full h-full bg-black bg-opacity-60 rounded hidden items-center justify-center m-auto shadow-sm "
             onClick={disableOutsideClicks}
         >
             <form
-                action="POST"
                 className="rounded bg-white p-2 h-2/3 w-1/2 flex flex-col text-black items-end"
                 onSubmit={formik.handleSubmit}
             >
@@ -81,6 +84,7 @@ function AddUser({ menuRef, closeMenu }: AddUserProps) {
                                 onInput={() => {
                                     formik.setStatus("");
                                 }}
+                                autoFocus={true}
                                 value={formik.values.userName}
                                 onChange={formik.handleChange}
                                 className="p-1 w-full border border-stone-600 rounded"

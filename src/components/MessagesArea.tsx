@@ -1,31 +1,57 @@
+import { useEffect, useRef } from "react";
+
 type MessagesAreaProps = {
-    messagesArray: { content: string; isOwner: boolean }[];
+    totalMessages: UserMessages[];
 };
-function MessagesArea({ messagesArray }: MessagesAreaProps) {
-    return (
-        <ul
-            className="w-full h-full p-2 grid gap-1 overflow-y-scroll"
+
+type MessageProps = {
+    content: string;
+    isOwner: boolean;
+    timestamp: string
+};
+
+function Message({ content, isOwner, timestamp }: MessageProps) {
+    const messageRef = useRef<HTMLElement>(null);
+    useEffect(() => {
+        messageRef.current?.scrollIntoView();
+    }, []);
+    return content ? (
+        <article
+            ref={messageRef}
+            className="w-full flex"
             style={{
-                gridTemplateRows: `repeat(${messagesArray.length}, max-content)`,
+                justifyContent: isOwner ? "end" : "start",
             }}
         >
-            {messagesArray.map((element, index) =>
-                element.content.length > 0 ? (
-                    <div key={index} className="w-full h-max bg-transparent flex"
-                    style={{justifyContent: element.isOwner ? 'end' : 'start'}}
-                    >
-                        <li
-                            className="rounded bg-stone-700 break-words p-2 text-wrap w-max"
-                            style={{whiteSpace: 'initial', maxWidth: '50%'}}
-                            //TODO: add styling for owner or not
-                        >
-                            {element.content}
-                        </li>
-                    </div>
-                ) : (
-                    <li key={index} className="hidden"></li>
-                )
-            )}
+            <li
+                className="rounded p-2 bg-stone-800 w-max break-words flex justify-between gap-2 text-wrap"
+                style={{ maxWidth: "60%" }}
+            >
+                <p className="w-max ">{content}</p>
+                <p className="w-max min-w-10 h-full flex justify-end items-end">{timestamp}</p>
+            </li>
+        </article>
+    ) : (
+        <></>
+    );
+}
+
+function MessagesArea({ totalMessages }: MessagesAreaProps) {
+    const ulRef = useRef<HTMLUListElement | null>(null);
+
+    return (
+        <ul
+            className="flex flex-col gap-1 w-full h-full p-2 overflow-y-scroll custom-scroll-bar"
+            ref={ulRef}
+        >
+            {totalMessages.map((element, index) => (
+                <Message
+                    key={index}
+                    content={element.content}
+                    isOwner={element.isOwner}
+                    timestamp={element.currentTime}
+                ></Message>
+            ))}
         </ul>
     );
 }
