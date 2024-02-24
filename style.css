@@ -1,3 +1,7 @@
+.custom-scroll-bar {
+    scrollbar-width: 10px;
+    scrollbar-color: #999999 rgb(110, 110, 110);
+}
 .custom-scroll-bar::-webkit-scrollbar {
     width: 10px;
 }
@@ -12,4 +16,16 @@
 }
 .show-caption-hover:hover > .caption-hover {
     display: block;
+}
+.background-bg-image-mountain {
+    background-image: url('@assets/mountain.jpg');
+    background-position: center bottom;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+.glass-effect {
+    backdrop-filter: blur(30px);
+    background-color: #6a6a6a4a;
+    min-height: 100%;
+    height: max-content;
 }

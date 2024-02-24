@@ -11,7 +11,7 @@ const userSchema = yup.object().shape({
 })
 
 export const friendSchema = yup.object().shape({
-    userName: yup.string().min(2,'Username too short').required('Username is required').trim(),
+    friendName: yup.string().min(2,'Username too short').required('Username is required').trim(),
 })
 
 export default userSchema;

@@ -1,16 +1,16 @@
 import { RefObject } from "react";
 
-type UserMenuProps = {
+type MenuProps = {
     children?: JSX.Element | JSX.Element[] | string;
     reference: RefObject<HTMLDivElement>;
     className?: string;
 };
 
-function UserMenu(props: UserMenuProps): JSX.Element {
+function Menu(props: MenuProps): JSX.Element {
     return (
         <div
             ref={props.reference}
-            className={`absolute w-screen h-screen bg-black bg-opacity-45 hidden place-items-center text-black`}
+            className={`absolute z-10 w-screen h-screen bg-black bg-opacity-45 hidden place-items-center text-black`}
         >
             <section
                 className={`rounded w-1/3 p-2 bg-white ${props.className}`}
@@ -21,4 +21,4 @@ function UserMenu(props: UserMenuProps): JSX.Element {
     );
 }
 
-export default UserMenu;
+export default Menu;

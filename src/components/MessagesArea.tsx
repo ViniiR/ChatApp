@@ -2,12 +2,16 @@ import { useEffect, useRef } from "react";
 
 type MessagesAreaProps = {
     totalMessages: UserMessages[];
+    isMobile?: boolean;
+    className?: string;
+    ulClassName?: string
+    optionalStyles?: React.CSSProperties;
 };
 
 type MessageProps = {
     content: string;
     isOwner: boolean;
-    timestamp: string
+    timestamp: string;
 };
 
 function Message({ content, isOwner, timestamp }: MessageProps) {
@@ -24,11 +28,13 @@ function Message({ content, isOwner, timestamp }: MessageProps) {
             }}
         >
             <li
-                className="rounded p-2 bg-stone-800 w-max break-words flex justify-between gap-2 text-wrap"
+                className="rounded p-2 bg-stone-700 w-max break-words flex justify-between gap-2 text-wrap"
                 style={{ maxWidth: "60%" }}
             >
                 <p className="w-max ">{content}</p>
-                <p className="w-max min-w-10 h-full flex justify-end items-end">{timestamp}</p>
+                <p className="w-max min-w-10 h-full flex justify-end items-end">
+                    {timestamp}
+                </p>
             </li>
         </article>
     ) : (
@@ -36,23 +42,50 @@ function Message({ content, isOwner, timestamp }: MessageProps) {
     );
 }
 
-function MessagesArea({ totalMessages }: MessagesAreaProps) {
+function MessagesArea({ totalMessages, isMobile, className, ulClassName, optionalStyles }: MessagesAreaProps) {
     const ulRef = useRef<HTMLUListElement | null>(null);
 
+    if (isMobile) {
+        return (
+            <section
+                className={`background-bg-image-mountain ${className}`}
+                style={optionalStyles}
+            >
+                <ul
+                    className={`glass-effect ${ulClassName}`}
+                    ref={ulRef}
+                >
+                    {totalMessages.map((element, index) => (
+                        <Message
+                            key={index}
+                            content={element.content}
+                            isOwner={element.isOwner}
+                            timestamp={element.currentTime}
+                        ></Message>
+                    ))}
+                </ul>
+            </section>
+        );
+    }
+
     return (
-        <ul
-            className="flex flex-col gap-1 w-full h-full p-2 overflow-y-scroll custom-scroll-bar"
-            ref={ulRef}
+        <section
+            className={`w-full h-full overflow-y-scroll custom-scroll-bar background-bg-image-mountain`}
         >
-            {totalMessages.map((element, index) => (
-                <Message
-                    key={index}
-                    content={element.content}
-                    isOwner={element.isOwner}
-                    timestamp={element.currentTime}
-                ></Message>
-            ))}
-        </ul>
+            <ul
+                className={`flex flex-col gap-1 w-full h-full custom-scroll-bar p-2 glass-effect`}
+                ref={ulRef}
+            >
+                {totalMessages.map((element, index) => (
+                    <Message
+                        key={index}
+                        content={element.content}
+                        isOwner={element.isOwner}
+                        timestamp={element.currentTime}
+                    ></Message>
+                ))}
+            </ul>
+        </section>
     );
 }
 
