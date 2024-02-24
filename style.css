@@ -29,3 +29,25 @@
     min-height: 100%;
     height: max-content;
 }
+.idle-animation {
+    animation: idleAnimation 60s;
+    animation-iteration-count: infinite;
+    position: absolute;
+}
+@keyframes idleAnimation {
+    from {
+        font-size: 15px;
+    }
+    25% {
+        font-size: 17px;
+    }
+    50% {
+        font-size: 20px;
+    }
+    75% {
+        font-size: 17px;
+    }
+    to {
+        font-size: 15px;
+    }
+}

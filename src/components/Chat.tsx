@@ -25,7 +25,7 @@ import { friendSchema } from "@/schema";
 import Home from "./android/Home";
 import Header from "./android/Header";
 import MobileChat from "./android/MobileChat";
-import homeIcon from '@assets/homeButton.png';
+import homeIcon from "@assets/homeButton.png";
 
 function Chat() {
     const { userName } = useContext(UserInfoContext);
@@ -255,7 +255,7 @@ function Chat() {
 
     function returnToHome() {
         setIsChatting(false);
-        setCurrentContactName('')
+        setCurrentContactName("");
     }
 
     useEffect(() => {
@@ -357,7 +357,10 @@ function Chat() {
                         </menu>
                     </section>
                 </Header>
-                <Contacts className='p-2' openChat={setCurrentContactName}></Contacts>
+                <Contacts
+                    className="p-2"
+                    openChat={setCurrentContactName}
+                ></Contacts>
             </Home>
         ) : (
             <MobileChat className="min-h-screen h-screen text-white">
@@ -587,8 +590,10 @@ function Chat() {
                         </footer>
                     </section>
                 ) : (
-                    <section className="grid place-items-center w-full bg-stone-700 h-full">
-                        No chat selected
+                    <section className="grid place-items-center w-full bg-stone-700 h-full relative">
+                        <p className="idle-animation">
+                            No Chat selected
+                        </p>
                     </section>
                 )}
             </section>
