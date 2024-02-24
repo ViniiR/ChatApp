@@ -36,6 +36,9 @@ function Chat() {
     const socket = useContext(SocketContext);
     const [userMessages, setUserMessages] = useState<UserMessages[]>([]);
     const textInputRef = useRef<HTMLInputElement>(null);
+    const [contactsList, setContactsList] = useState<Array<{ name: string }>>(
+        []
+    );
 
     const mobileUserMenuRef = useRef<HTMLDivElement>(null);
     const mobileAddFriendMenuRef = useRef<HTMLDivElement>(null);
@@ -55,9 +58,8 @@ function Chat() {
                         withCredentials: true,
                     }
                 );
-                console.log(res.data);
-                window.location.reload();
                 setStatus(res.data);
+                navigateTo("/");
             } catch (err) {
                 const message = (err as { response: { data: string } }).response
                     .data;
@@ -69,6 +71,23 @@ function Chat() {
             }
         },
     });
+
+    async function getContactsList() {
+        const infoRes = await axios.get(`${SERVER_URL}/users/info`, {
+            withCredentials: true,
+        });
+        const contacts: { name: string }[] = [];
+        infoRes.data.userInfo.contacts.forEach((element: string, i: number) => {
+            contacts[i] = {
+                name: element,
+            };
+        });
+        setContactsList(contacts);
+    }
+
+    useEffect(() => {
+        getContactsList();
+    }, []);
 
     useEffect(() => {
         socket.connect();
@@ -136,14 +155,13 @@ function Chat() {
 
     async function removeContact() {
         try {
-            const res = await axios.patch(`${SERVER_URL}/users/remove-friend`, {
+            await axios.patch(`${SERVER_URL}/users/remove-friend`, {
                 name: currentContactName,
                 userName: userName,
             });
-            console.log(res);
-            window.location.reload();
+            getContactsList();
+            navigateTo('/')
         } catch (err) {
-            console.log(err);
             console.error(err);
         }
     }
@@ -358,6 +376,7 @@ function Chat() {
                     </section>
                 </Header>
                 <Contacts
+                    contactsList={contactsList}
                     className="p-2"
                     openChat={setCurrentContactName}
                 ></Contacts>
@@ -375,9 +394,21 @@ function Chat() {
                                 : "Friend"}
                         </span>
                     </p>
-                    <button onClick={returnToHome} className="w-8 h-8">
-                        <img className="w-full" src={homeIcon} alt="" />
-                    </button>
+                    <section className="flex gap-5">
+                        <button
+                            onClick={removeContact}
+                            className="flex w-8 h-8 justify-center hover:bg-stone-700 rounded-full p-1 relative show-caption-hover"
+                        >
+                            <img
+                                src={removeFriendIcon}
+                                className="w-7"
+                                alt=""
+                            />
+                        </button>
+                        <button onClick={returnToHome} className="w-8 h-8">
+                            <img className="w-full" src={homeIcon} alt="" />
+                        </button>
+                    </section>
                 </header>
                 <MessagesArea
                     isMobile={true}
@@ -517,7 +548,10 @@ function Chat() {
                         </menu>
                     </section>
                 </header>
-                <Contacts openChat={setCurrentContactName}></Contacts>
+                <Contacts
+                    contactsList={contactsList}
+                    openChat={setCurrentContactName}
+                ></Contacts>
             </section>
             <section className="flex flex-row justify-between bg-stone-700 w-full h-full">
                 {currentContactName ? (
@@ -591,9 +625,7 @@ function Chat() {
                     </section>
                 ) : (
                     <section className="grid place-items-center w-full bg-stone-700 h-full relative">
-                        <p className="idle-animation">
-                            No Chat selected
-                        </p>
+                        <p className="idle-animation">No Chat selected</p>
                     </section>
                 )}
             </section>

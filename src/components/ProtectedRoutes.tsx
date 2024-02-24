@@ -1,4 +1,4 @@
-import { SERVER_URL} from "@/environment";
+import { SERVER_URL } from "@/environment";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
@@ -10,7 +10,6 @@ const UserInfoObject = {
     userName: "",
     contactsList: [{ messages: [""], name: "" }],
 };
-
 
 function ProtectedRoutes() {
     const [isValidToken, setIsValidToken] = useState(false);
@@ -29,12 +28,14 @@ function ProtectedRoutes() {
                 const infoRes = await axios.get(`${SERVER_URL}/users/info`, {
                     withCredentials: true,
                 });
-                infoRes.data.userInfo.contacts.forEach((element: string, i: number) => {
-                    UserInfoObject.contactsList[i] = {
-                        name: element,
-                        messages: ['']
-                    };
-                });
+                infoRes.data.userInfo.contacts.forEach(
+                    (element: string, i: number) => {
+                        UserInfoObject.contactsList[i] = {
+                            name: element,
+                            messages: [""],
+                        };
+                    }
+                );
                 setIsValidToken(true);
                 setIsLoading(false);
             } catch (err) {
@@ -54,4 +55,6 @@ export default ProtectedRoutes;
 
 export const UserInfoContext = createContext(UserInfoObject);
 
-export const SocketContext = createContext(io(`${SERVER_URL}/chat`, {autoConnect: false}))
+export const SocketContext = createContext(
+    io(`${SERVER_URL}/chat`, { autoConnect: false })
+);

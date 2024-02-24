@@ -1,12 +1,9 @@
-import { useContext } from "react";
-import { UserInfoContext } from "./ProtectedRoutes";
-
 type ContactsProps = {
     openChat: CallableFunction;
     className?: string
+    contactsList: Array<{name: string}>
 };
-function Contacts({ openChat, className }: ContactsProps) {
-    const { contactsList } = useContext(UserInfoContext);
+function Contacts({ openChat, className, contactsList }: ContactsProps) {
     return (
         <ul
             className={`bg-stone-900 border-r ps-2 border-stone-600 overflow-y-auto custom-scroll-bar ${className}`}
