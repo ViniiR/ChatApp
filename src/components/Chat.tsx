@@ -266,7 +266,7 @@ function Chat() {
         setIsChatting(true);
     }, [currentContactName]);
 
-    if (window.outerWidth <= 425) {
+    if (window.outerWidth <= 450) {
         return !isChatting ? (
             <Home className="h-screen w-full text-white">
                 <Menu

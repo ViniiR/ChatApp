@@ -54,4 +54,4 @@ export default ProtectedRoutes;
 
 export const UserInfoContext = createContext(UserInfoObject);
 
-export const SocketContext = createContext(io('http://localhost:3000/chat', {autoConnect: false}))
+export const SocketContext = createContext(io(`${SERVER_URL}/chat`, {autoConnect: false}))

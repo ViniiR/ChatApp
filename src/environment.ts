@@ -1,0 +1,1 @@
+export const SERVER_URL: string = 'https://chatappapi-53m6.onrender.com'
