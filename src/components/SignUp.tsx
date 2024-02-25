@@ -3,23 +3,33 @@ import Form from "./Form";
 import axios from "axios";
 import { SERVER_URL } from "@/environment";
 import { useFormik } from "formik";
+import { useNavigate } from "react-router-dom";
 
 function SignUp() {
+    const navigateTo = useNavigate()
     const formik = useFormik({
         initialValues: {
             userName: "",
             password: "",
         },
         validationSchema: userSchema,
-        onSubmit: async (values: User, {setStatus}) => {
+        onSubmit: async (values: User, { setStatus }) => {
             try {
-                await axios.post(
-                    `${SERVER_URL}/users/create`,
-                    values
-                );
-                setStatus('User created successfully, Go to Login')
+                //creates account
+                await axios.post(`${SERVER_URL}/users/create`, values);
+                setStatus("User created successfully, Go to Login");
+                //instantly logs in
+                const response = await axios.get(`${SERVER_URL}/users/login`, {
+                    params: {
+                        userInfo: values,
+                    },
+                    withCredentials: true,
+                });
+                if (response.status === 200) {
+                    navigateTo("/auth/chat");
+                }
             } catch (err) {
-                setStatus('User already exists, Try a different Username')
+                setStatus("User already exists, Try a different Username");
                 console.error(err);
             }
         },
