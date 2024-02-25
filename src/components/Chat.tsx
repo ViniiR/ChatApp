@@ -39,7 +39,9 @@ function Chat() {
     const [contactsList, setContactsList] = useState<Array<{ name: string }>>(
         []
     );
+    const [isOnline, setIsOnline] = useState("Offline");
 
+    //mobile only
     const mobileUserMenuRef = useRef<HTMLDivElement>(null);
     const mobileAddFriendMenuRef = useRef<HTMLDivElement>(null);
     const [isChatting, setIsChatting] = useState(false);
@@ -85,10 +87,31 @@ function Chat() {
         setContactsList(contacts);
     }
 
-    useEffect(() => {
-        getContactsList();
-    }, []);
+    async function emitTyping() {
+        try {
+            socket.emit("updateUserState", {
+                name: userName,
+                state: "Typing...",
+                contact: currentContactName,
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
+    async function emitOnlineState() {
+        try {
+            socket.emit("updateUserState", {
+                name: userName,
+                state: "Online",
+                contact: currentContactName,
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    //connects to socket.io
     useEffect(() => {
         socket.connect();
         return () => {
@@ -97,30 +120,104 @@ function Chat() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    //emits current user's state to db
+    useEffect(() => {
+        function setStateChangeOnline() {
+            socket.emit("updateUserState", {
+                name: userName,
+                state: "Online",
+                contact: currentContactName,
+            });
+        }
+        function setStateChangeOffline() {
+            socket.emit("updateUserState", {
+                name: userName,
+                state: "Offline",
+                contact: currentContactName,
+            });
+        }
+
+        setStateChangeOnline();
+
+        window.addEventListener("beforeunload", setStateChangeOffline);
+
+        return () => {
+            window.removeEventListener("beforeunload", setStateChangeOffline);
+            setStateChangeOffline();
+        };
+        //eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentContactName]);
+
+    //gets friend initial online state
+    useEffect(() => {
+        function stateChangeHandler(data: { name: string; state: string }) {
+            if (data.name === currentContactName) {
+                setIsOnline(data.state);
+            } else {
+                setIsOnline("Offline");
+            }
+        }
+
+        async function getContactInitialState(name: string) {
+            if (!name) return;
+            try {
+                console.log();
+                const res = await axios.get(`${SERVER_URL}/users/friend-info`, {
+                    params: {
+                        userName: name,
+                    },
+                });
+                if (!res.data.state) {
+                    setIsOnline("Offline");
+                    return;
+                }
+                setIsOnline(res.data.state);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        getContactInitialState(currentContactName);
+
+        socket.on("contactStateChange", stateChangeHandler);
+
+        return () => {
+            socket.off("contactStateChange", stateChangeHandler);
+        };
+    }, [socket, currentContactName]);
+
+    //updates the contacts list
+    useEffect(() => {
+        getContactsList();
+    }, []);
+
+    //joins room
     useEffect(() => {
         if (!currentContactName) return;
         socket.emit("joinRoom", {
             client1: userName,
             client2: currentContactName,
         });
+        //TODO: query the database with the contact name to get its current onlineState, and set it as setIsOnline()
         //empties array of messages so messages between users don't overlap
         setUserMessages([]);
         textInputRef.current?.focus();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentContactName]);
 
+    //handles incoming messages
     useEffect(() => {
         const messageHandler = (data: {
             owner: string;
             content: string;
-            timestamp: string;
+            currentTime: string;
         }) => {
             setUserMessages((previousMessages) => [
                 ...previousMessages,
                 {
                     content: data.content,
                     isOwner: data.owner === userName,
-                    currentTime: data.timestamp,
+                    currentTime: data.currentTime,
                 },
             ]);
         };
@@ -131,6 +228,7 @@ function Chat() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, userName]);
 
+    //gets messages when user enters room
     useEffect(() => {
         const storedMessagesHandler = (
             data: {
@@ -160,7 +258,7 @@ function Chat() {
                 userName: userName,
             });
             getContactsList();
-            navigateTo('/')
+            navigateTo("/");
         } catch (err) {
             console.error(err);
         }
@@ -174,15 +272,22 @@ function Chat() {
         initialValues: {
             message: "",
         },
-        onSubmit(values, { resetForm }) {
+        async onSubmit(values, { resetForm }) {
             if (values.message.trim().length < 1) {
                 return;
             }
+
+            const date = new Date();
+            const hours = date.getHours().toString().padStart(2, "0");
+            const minutes = date.getMinutes().toString().padStart(2, "0");
+
+            const currentTime = `${hours}:${minutes}`;
 
             const messageData: Message = {
                 content: values.message,
                 owner: userName,
                 sentTo: currentContactName,
+                currentTime,
             };
 
             emitMessage(messageData);
@@ -276,6 +381,7 @@ function Chat() {
         setCurrentContactName("");
     }
 
+    //mobile only, lets the code know if the user is on a chat or not
     useEffect(() => {
         if (!currentContactName) {
             setIsChatting(false);
@@ -388,10 +494,18 @@ function Chat() {
                         <span className="font-semibold text-lg">
                             {currentContactName}
                         </span>
-                        <span className="text-zinc-400">
-                            {currentContactName === userName
-                                ? "Yourself"
-                                : "Friend"}
+                        <span
+                            className="text-zinc-400"
+                            style={{
+                                color:
+                                    isOnline === "Online"
+                                        ? "lightgreen"
+                                        : isOnline === "Offline"
+                                        ? "red"
+                                        : "gray",
+                            }}
+                        >
+                            {isOnline}
                         </span>
                     </p>
                     <section className="flex gap-5">
@@ -429,6 +543,8 @@ function Chat() {
                         onSubmit={formik.handleSubmit}
                     >
                         <input
+                            onKeyDown={emitTyping}
+                            onKeyUp={emitOnlineState}
                             onChange={formik.handleChange}
                             type="text"
                             value={formik.values.message}
@@ -561,10 +677,18 @@ function Chat() {
                                 <h2 className="font-semibold text-lg h h-2/3">
                                     {currentContactName}
                                 </h2>
-                                <p className="h-1/3 text-sm text-neutral-400">
-                                    {userName === currentContactName
-                                        ? "Yourself"
-                                        : "Friend"}
+                                <p
+                                    className="h-1/3 text-sm text-neutral-400"
+                                    style={{
+                                        color:
+                                            isOnline === "Online"
+                                                ? "lightgreen"
+                                                : isOnline === "Offline"
+                                                ? "red"
+                                                : "gray",
+                                    }}
+                                >
+                                    {isOnline}
                                 </p>
                             </section>
                             <button
