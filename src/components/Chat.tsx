@@ -41,6 +41,8 @@ function Chat() {
     );
     const [isOnline, setIsOnline] = useState("Offline");
 
+    const [timeoutID, setTimeoutID] = useState<number | null>(null);
+
     //mobile only
     const mobileUserMenuRef = useRef<HTMLDivElement>(null);
     const mobileAddFriendMenuRef = useRef<HTMLDivElement>(null);
@@ -85,18 +87,6 @@ function Chat() {
             };
         });
         setContactsList(contacts);
-    }
-
-    async function emitTyping() {
-        try {
-            socket.emit("updateUserState", {
-                name: userName,
-                state: "Typing...",
-                contact: currentContactName,
-            });
-        } catch (err) {
-            console.error(err);
-        }
     }
 
     async function emitOnlineState() {
@@ -148,20 +138,57 @@ function Chat() {
         //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentContactName]);
 
-    //gets friend initial online state
-    useEffect(() => {
-        function stateChangeHandler(data: { name: string; state: string }) {
-            if (data.name === currentContactName) {
-                setIsOnline(data.state);
-            } else {
-                setIsOnline("Offline");
-            }
+    async function artificiallyEmitOnlineState() {
+        try {
+            socket.emit("updateUserState", {
+                name: userName,
+                state: "Online",
+                contact: currentContactName,
+            });
+            updateContactState(currentContactName)
+        } catch (err) {
+            console.error(err);
         }
+    }
 
+    async function updateContactState(name: string) {
+        if (!name) return;
+        try {
+            const res = await axios.get(`${SERVER_URL}/users/friend-info`, {
+                params: {
+                    userName: name,
+                },
+            });
+            console.log(res.data);
+            if (!res.data.state) {
+                setIsOnline("Offline");
+                return;
+            }
+            setIsOnline(res.data.state);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function emitTyping() {
+        try {
+            //FIXME: the currentContact being talked to's state becomes offline
+            clearTimeout(timeoutID!);
+            socket.emit("updateUserState", {
+                name: userName,
+                state: "Typing...",
+            });
+            updateContactState(currentContactName);
+            setTimeoutID(window.setTimeout(artificiallyEmitOnlineState, 3000));
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    useEffect(() => {
         async function getContactInitialState(name: string) {
             if (!name) return;
             try {
-                console.log();
                 const res = await axios.get(`${SERVER_URL}/users/friend-info`, {
                     params: {
                         userName: name,
@@ -178,13 +205,23 @@ function Chat() {
         }
 
         getContactInitialState(currentContactName);
+    }, [currentContactName]);
+    //gets friend initial online state
+    useEffect(() => {
+        function stateChangeHandler(data: { name: string; state: string }) {
+            if (data.name === currentContactName) {
+                setIsOnline(data.state);
+            } else {
+                setIsOnline("Offline");
+            }
+        }
 
         socket.on("contactStateChange", stateChangeHandler);
 
         return () => {
             socket.off("contactStateChange", stateChangeHandler);
         };
-    }, [socket, currentContactName]);
+    }, [currentContactName, socket]);
 
     //updates the contacts list
     useEffect(() => {
@@ -717,6 +754,7 @@ function Chat() {
                                 onSubmit={formik.handleSubmit}
                             >
                                 <input
+                                    onKeyDown={emitTyping}
                                     onChange={formik.handleChange}
                                     type="text"
                                     value={formik.values.message}
