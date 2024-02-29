@@ -1,6 +1,6 @@
 import ReactDOM from "react-dom/client";
 import {
-    createHashRouter,
+    createBrowserRouter,
     Navigate,
     RouterProvider,
 } from "react-router-dom";
@@ -9,8 +9,7 @@ import ProtectedRoutes from "./components/ProtectedRoutes";
 import Chat from "./components/Chat";
 import SignUp from "./components/SignUp";
 
-//hash is not recommended but it is what it is
-const router = createHashRouter([
+const router = createBrowserRouter([
     {
         path: "/",
         element: <Navigate to={"/auth"}></Navigate>,
